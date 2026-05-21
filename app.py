@@ -1,32 +1,30 @@
 import streamlit as st
 import pandas as pd
-import gspread
 from datetime import datetime
-from google.oauth2.service_account import Credentials
 
-# --- CONFIGURACIÓN ---
+# --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Conexión Pagos", layout="centered")
 st.title("💳 Conexión Pagos")
 
-# Configuración de credenciales (asegúrate de tener 'credenciales.json' en la misma carpeta)
-def get_gspread_client():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_file('credenciales.json', scopes=scope)
-    return gspread.authorize(creds)
-
-# Cargar base de datos
+# --- SIMULACIÓN DE CARGA DE DATOS ---
+# NOTA: Cuando conectes tu Google Sheets, reemplaza esto con la carga real
 @st.cache_data(ttl=60)
 def cargar_clientes():
-    client = get_gspread_client()
-    sheet = client.open("NombreDeTuHoja").worksheet("baseDeDatos") 
-    return pd.DataFrame(sheet.get_all_records())
+    # Aquí puedes conectar con Google Sheets más adelante usando gspread o una API
+    data = {
+        'CODIGO': ['16892013', '12345678'],
+        'NOMBRE': ['JANER RODRIGUEZ', 'CLIENTE PRUEBA'],
+        'CONTRATO': ['CONT-001', 'CONT-002']
+    }
+    return pd.DataFrame(data)
+
+df = cargar_clientes()
 
 # --- INTERFAZ ---
-df = cargar_clientes()
 cedula_input = st.text_input("Ingresa tu número de cédula:")
 
 if cedula_input:
-    # Filtrar cliente
+    # Filtrar cliente en el DataFrame
     cliente = df[df['CODIGO'].astype(str) == str(cedula_input)]
     
     if not cliente.empty:
@@ -45,21 +43,10 @@ if cedula_input:
             
             if submit:
                 if archivo is not None:
-                    # Lógica de registro
-                    client = get_gspread_client()
-                    sheet = client.open("NombreDeTuHoja").worksheet("RegistroPagos")
+                    # AQUÍ ES DONDE CONECTAREMOS CON EL GOOGLE APPS SCRIPT
+                    # Por ahora, simulamos el registro exitoso
+                    st.info(f"Enviando datos de {nombre} al servidor...")
                     
-                    # Guardar en GSheets
-                    sheet.append_row([
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        cedula_input,
-                        nombre,
-                        contrato,
-                        valor,
-                        str(fecha),
-                        mes,
-                        "Pendiente"
-                    ])
                     st.balloons()
                     st.success("¡Pago reportado exitosamente!")
                 else:
