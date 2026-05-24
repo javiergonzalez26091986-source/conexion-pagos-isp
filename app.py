@@ -11,6 +11,14 @@ CLOUDINARY_PRESET = "conexion_pagos_preset"
 # Coloca aquí tu URL real de Google Apps Script (la que termina en /exec)
 URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
+# --- INICIALIZACIÓN DE ESTADOS (Para evitar duplicados y limpiar campos) ---
+if "pago_enviado" not in st.session_state:
+    st.session_state.pago_enviado = False
+if "ref_seguimiento" not in st.session_state:
+    st.session_state.ref_seguimiento = ""
+if "cedula_anterior" not in st.session_state:
+    st.session_state.cedula_anterior = ""
+
 # --- CARGAR IMÁGENES ---
 try:
     logo_completo = Image.open('logoSenalMas.jpeg')
@@ -21,7 +29,7 @@ except Exception:
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
-# --- ESTILOS PERSONALIZADOS (Solución definitiva para el botón y centrado) ---
+# --- ESTILOS PERSONALIZADOS ---
 st.markdown("""
     <style>
         .main { background-color: #00233c; }
@@ -39,7 +47,7 @@ st.markdown("""
         .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
         
-        /* SOLUCIÓN AL BOTÓN OSCURO: Forzado mediante selectores nativos de Streamlit */
+        /* Diseño del Botón de Enviar (Siempre Visible Verde/Aqua) */
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important;
             color: #ffffff !important;
@@ -54,13 +62,11 @@ st.markdown("""
             display: inline-block !important;
         }
         
-        /* Forzar el color del texto blanco incluso si Streamlit intenta alterarlo */
         div[data-testid="stFormSubmitButton"] button p {
             color: #ffffff !important;
             font-weight: 700 !important;
         }
         
-        /* Efecto Hover (cuando pasan el mouse por encima) */
         div[data-testid="stFormSubmitButton"] button:hover {
             background-color: #02c3b1 !important;
             color: #ffffff !important;
@@ -135,6 +141,11 @@ df = cargar_clientes()
 if not df.empty:
     cedula_input = st.text_input("Ingrese su número de cédula para continuar:", placeholder="Ej: 16892013")
 
+    # Si el usuario cambia la cédula o la borra, limpiamos cualquier mensaje de éxito anterior
+    if cedula_input != st.session_state.cedula_anterior:
+        st.session_state.pago_enviado = False
+        st.session_state.cedula_anterior = cedula_input
+
     if cedula_input:
         cliente = df[df['CODIGO'].astype(str) == str(cedula_input)]
         
@@ -143,6 +154,12 @@ if not df.empty:
             lista_contratos = cliente['CONTRATO'].astype(str).tolist()
             
             st.success(f"Bienvenido/a, **{nombre}**")
+            
+            # MUESTRA EL MENSAJE DE ÉXITO AQUÍ (Fuera del formulario para que persista tras el vaciado)
+            if st.session_state.pago_enviado:
+                st.success("¡Reporte enviado y registrado exitosamente!")
+                st.info(f"**Referencia:** {st.session_state.ref_seguimiento}")
+                st.caption("Su comprobante ha sido almacenado de forma segura en el sistema administrativo.")
             
             with st.form("registro_pago"):
                 contrato = st.selectbox("Seleccione el contrato a reportar:", lista_contratos)
@@ -164,9 +181,11 @@ if not df.empty:
                                 )
                                 
                                 if guardado_exitoso:
-                                    st.success("¡Reporte enviado y registrado exitosamente!")
-                                    st.info(f"**Referencia:** {datetime.now().strftime('%Y%m%d%H%M%S')}")
-                                    st.caption("Su comprobante ha sido almacenado de forma segura.")
+                                    # Guardamos los datos de éxito en el estado de la sesión antes de reiniciar
+                                    st.session_state.pago_enviado = True
+                                    st.session_state.ref_seguimiento = datetime.now().strftime('%Y%m%d%H%M%S')
+                                    # Forzamos la limpieza del formulario recreando la interfaz en blanco
+                                    st.rerun()
                                 else:
                                     st.error("Error al registrar en la base de datos de Google Sheets.")
                             else:
