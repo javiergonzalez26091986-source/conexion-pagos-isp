@@ -37,8 +37,6 @@ st.markdown("""
             width: 280px;
             text-align: center;
             margin-bottom: 1.5rem;
-            margin: 0 auto;
-            display: block;
         }
         
         /* Forzar que la imagen interna de Streamlit siga el centrado */
