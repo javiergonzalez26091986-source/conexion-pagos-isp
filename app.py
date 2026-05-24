@@ -9,7 +9,7 @@ CLOUDINARY_CLOUD_NAME = "ddouzzs1i"
 CLOUDINARY_PRESET = "conexion_pagos_preset"
 
 # Reemplaza esta cadena con tu URL real cuando hagas la implementación en Apps Script
-URL_APP_SCRIPT = "TU_URL_DE_APPS_SCRIPT_AQUI"
+URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
 # --- CARGAR IMÁGENES ---
 try:
