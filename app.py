@@ -3,12 +3,13 @@ import pandas as pd
 from datetime import datetime
 from PIL import Image
 import requests
-import gspread
-from google.oauth2.service_account import Credentials
 
-# --- CONFIGURACIÓN DE CLOUDINARY ---
+# --- CONFIGURACIÓN DE APIS ---
 CLOUDINARY_CLOUD_NAME = "ddouzzs1i"
 CLOUDINARY_PRESET = "conexion_pagos_preset"
+
+# PEGA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT:
+URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
 # --- CARGAR IMÁGENES ---
 try:
@@ -20,63 +21,46 @@ except Exception:
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
-# --- CONEXIÓN A GOOGLE SHEETS ---
-def obtener_cliente_gsheets():
-    """Autentica y retorna el cliente de gspread usando st.secrets"""
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    # Se obtienen las credenciales desde los secretos de Streamlit
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
-    return gspread.authorize(creds)
-
-@st.cache_data(ttl=60) # Refresca la base de datos cada 60 segundos
+# --- FUNCIONES DE CONEXIÓN A GOOGLE APPS SCRIPT ---
+@st.cache_data(ttl=60)
 def cargar_clientes():
-    """Lee la pestaña 'baseDeDatos' y retorna un DataFrame"""
+    """Hace una petición GET a Apps Script para leer la base de datos"""
     try:
-        cliente_gs = obtener_cliente_gsheets()
-        sheet = cliente_gs.open("Conexión Pagos").worksheet("baseDeDatos")
-        # get_all_records usa la primera fila como encabezados (CODIGO, NOMBRE, CONTRATO)
-        datos = sheet.get_all_records()
-        df = pd.DataFrame(datos)
-        # Limpiar filas vacías por si acaso
-        df = df.dropna(subset=['CODIGO'])
-        return df
+        response = requests.get(URL_APP_SCRIPT)
+        if response.status_code == 200:
+            datos = response.json()
+            df = pd.DataFrame(datos)
+            return df
+        else:
+            st.error("Error al obtener la base de datos.")
+            return pd.DataFrame()
     except Exception as e:
-        st.error(f"No se pudo conectar con la base de datos: {e}")
+        st.error(f"Error de conexión con Apps Script: {e}")
         return pd.DataFrame()
 
 def guardar_registro_pago(cedula, nombre, contrato, valor, fecha, mes, url_comprobante):
-    """Inserta una nueva fila en la pestaña 'RegistroPagos'"""
+    """Hace una petición POST a Apps Script para insertar el registro"""
+    payload = {
+        "cedula": str(cedula),
+        "nombre": str(nombre),
+        "contrato": str(contrato),
+        "valor": valor,
+        "fecha": str(fecha),
+        "mes": str(mes),
+        "url_comprobante": str(url_comprobante)
+    }
+    
     try:
-        cliente_gs = obtener_cliente_gsheets()
-        sheet = cliente_gs.open("Conexión Pagos").worksheet("RegistroPagos")
-        
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        estado_inicial = "Por Verificar"
-        
-        # El orden debe coincidir exactamente con tus columnas:
-        # Timestamp | Cedula | NombreCliente | Contrato | ValorPagado | FechaPago | MesPago | Estado | Soporte de pago
-        fila = [
-            timestamp, 
-            str(cedula), 
-            nombre, 
-            str(contrato), 
-            valor, 
-            str(fecha), 
-            mes, 
-            estado_inicial, 
-            url_comprobante
-        ]
-        
-        sheet.append_row(fila)
-        return True
+        response = requests.post(URL_APP_SCRIPT, json=payload)
+        if response.status_code == 200:
+            respuesta_json = response.json()
+            return respuesta_json.get("status") == "success"
+        return False
     except Exception as e:
-        st.error(f"Error al guardar el registro en Google Sheets: {e}")
+        st.error(f"Error al enviar datos: {e}")
         return False
 
-# --- FUNCIÓN PARA SUBIR ARCHIVOS A CLOUDINARY ---
+# --- FUNCIÓN PARA CLOUDINARY ---
 def subir_a_cloudinary(archivo_subido):
     url_api = f"https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/image/upload"
     payload = {"upload_preset": CLOUDINARY_PRESET}
@@ -94,6 +78,8 @@ st.markdown("""
     <style>
         .main { background-color: #00233c; }
         .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+        .logo-container { display: block; margin: 0 auto; width: 280px; text-align: center; margin-bottom: 1.5rem; }
+        [data-testid="stMarkdownContainer"] .logo-container img { margin: 0 auto; display: block; }
         h1 { color: #ffffff; text-align: center; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
         h3 { color: #b0c4de; text-align: center; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
         .stMarkdown p { color: #ffffff; text-align: center; }
@@ -105,7 +91,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ENCABEZADO CON LOGO CENTRADO (MÉTODO INFALIBLE CON COLUMNAS) ---
+# --- ENCABEZADO CON LOGO CENTRADO ---
 if logo_completo is not None:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -121,11 +107,9 @@ if not df.empty:
     cedula_input = st.text_input("Ingrese su número de cédula para continuar:", placeholder="Ej: 16892013")
 
     if cedula_input:
-        # Filtramos como string para evitar errores con los tipos de datos de Sheets
         cliente = df[df['CODIGO'].astype(str) == str(cedula_input)]
         
         if not cliente.empty:
-            # Si una cédula tiene varios contratos, extraemos la lista de contratos
             nombre = cliente.iloc[0]['NOMBRE']
             lista_contratos = cliente['CONTRATO'].astype(str).tolist()
             
@@ -145,7 +129,6 @@ if not df.empty:
                             url_comprobante = subir_a_cloudinary(archivo)
                             
                             if url_comprobante:
-                                # Llamamos a la función que inserta en la hoja RegistroPagos
                                 guardado_exitoso = guardar_registro_pago(
                                     cedula_input, nombre, contrato, valor, fecha, mes, url_comprobante
                                 )
@@ -154,6 +137,8 @@ if not df.empty:
                                     st.success("¡Reporte enviado y registrado exitosamente!")
                                     st.info(f"**Referencia:** {datetime.now().strftime('%Y%m%d%H%M%S')}")
                                     st.caption("Su comprobante ha sido almacenado de forma segura.")
+                                else:
+                                    st.error("Error al registrar en la base de datos.")
                             else:
                                 st.error("Fallo al subir la imagen. Intente de nuevo.")
                     else:
