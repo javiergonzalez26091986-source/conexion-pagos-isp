@@ -8,7 +8,7 @@ import requests
 CLOUDINARY_CLOUD_NAME = "ddouzzs1i"
 CLOUDINARY_PRESET = "conexion_pagos_preset"
 
-# Reemplaza esta cadena con tu URL real cuando hagas la implementación en Apps Script
+# Coloca aquí tu URL real de Google Apps Script (la que termina en /exec)
 URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
 # --- CARGAR IMÁGENES ---
@@ -21,13 +21,12 @@ except Exception:
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
-# --- ESTILOS PERSONALIZADOS (Corrección de Botón y Centrado de Logo) ---
+# --- ESTILOS PERSONALIZADOS (Solución definitiva para el botón y centrado) ---
 st.markdown("""
     <style>
         .main { background-color: #00233c; }
         .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
         
-        /* Centrado absoluto para el título y subtítulo */
         h1, h3 { text-align: center !important; }
         h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
         h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
@@ -40,41 +39,43 @@ st.markdown("""
         .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
         
-        /* CORRECCIÓN CRÍTICA: Diseño del Botón de Enviar (Visible y Profesional) */
-        .stButton>button { 
-            background-color: #00a896 !important; 
-            color: #ffffff !important; 
-            border-radius: 8px !important; 
-            font-weight: 700 !important; 
+        /* SOLUCIÓN AL BOTÓN OSCURO: Forzado mediante selectores nativos de Streamlit */
+        div[data-testid="stFormSubmitButton"] button {
+            background-color: #00a896 !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
             font-size: 1.1rem !important;
-            border: none !important; 
-            padding: 0.7rem 2rem !important; 
-            width: 100% !important; 
+            border: none !important;
+            padding: 0.7rem 2rem !important;
+            width: 100% !important;
             box-shadow: 0 4px 10px rgba(0,168,150,0.3) !important;
-            transition: all 0.3s ease !important;
+            text-shadow: none !important;
+            display: inline-block !important;
         }
         
-        /* Efecto al pasar el cursor (Hover) */
-        .stButton>button:hover { 
-            background-color: #02c3b1 !important; 
+        /* Forzar el color del texto blanco incluso si Streamlit intenta alterarlo */
+        div[data-testid="stFormSubmitButton"] button p {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+        
+        /* Efecto Hover (cuando pasan el mouse por encima) */
+        div[data-testid="stFormSubmitButton"] button:hover {
+            background-color: #02c3b1 !important;
             color: #ffffff !important;
             box-shadow: 0 6px 15px rgba(2,195,177,0.5) !important;
-            transform: translateY(-1px);
         }
         
         .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #b0c4de, transparent); margin-top: 3rem; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- ENCABEZADO CON LOGO CENTRADO (MÉTODO HTML SEGURO) ---
+# --- ENCABEZADO CON LOGO CENTRADO ---
 if logo_completo is not None:
-    # Usamos código HTML nativo para garantizar el centrado exacto del logo en la app
-    st.markdown(
-        '<div style="display: flex; justify-content: center; margin-bottom: 1rem;">'
-        '<img src="https://raw.githubusercontent.com/javiergonzalez26091986-source/conexion-pagos-isp/main/logoSenalMas.jpeg" width="220" style="border-radius: 10px;">'
-        '</div>', 
-        unsafe_allow_html=True
-    )
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(logo_completo, use_column_width=True)
 
 st.title("Portal de Pagos")
 st.subheader("Gestión automatizada de soporte para nuestros clientes")
@@ -83,7 +84,6 @@ st.subheader("Gestión automatizada de soporte para nuestros clientes")
 @st.cache_data(ttl=60)
 def cargar_clientes():
     if URL_APP_SCRIPT == "TU_URL_DE_APPS_SCRIPT_AQUI":
-        # Datos de prueba para que la app no falle localmente mientras pones la URL
         data = {
             'CODIGO': ['16892013', '12345678'],
             'NOMBRE': ['Rodriguez Caicedo Janer Fabricio', 'CLIENTE PRUEBA'],
