@@ -198,4 +198,4 @@ else:
     st.warning("Conectando con la base de datos o base de datos vacía...")
 
 st.markdown("---")
-st.markdown('<p style="color: #b0c4de; text-align: center; font-size: 0.9rem;">Señal Más | Innovación y Conectividad</p>', unsafe_allow_html=True)
+st.markdown('<p style="color: #b0c4de; text-align: center; font-size: 0.9rem;">Señal Más | Innovación y Conectividad | senalmas.florida@gmail.com</p>', unsafe_allow_html=True)
