@@ -8,7 +8,6 @@ import requests
 CLOUDINARY_CLOUD_NAME = "dgdtwbmot"
 CLOUDINARY_PRESET = "conexion_pagos_preset1"
 
-# Coloca aquí tu URL real de Google Apps Script (la que termina en /exec)
 URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
 # --- INICIALIZACIÓN DE ESTADOS (Para evitar duplicados y limpiar campos) ---
@@ -29,12 +28,21 @@ except Exception:
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
-# --- ESTILOS PERSONALIZADOS ---
+# --- ESTILOS PERSONALIZADOS UNIFICADOS Y DEPURADOS ---
 st.markdown("""
     <style>
+        /* Ocultar elementos por defecto de Streamlit */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .stAppDeployButton {display:none;}
+        div[data-testid="stToolbar"] { visibility: hidden !important; }
+
+        /* Colores y fondos principales */
         .main { background-color: #00233c; }
         .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
         
+        /* Tipografías y Textos */
         h1, h3 { text-align: center !important; }
         h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
         h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
@@ -73,6 +81,7 @@ st.markdown("""
             box-shadow: 0 6px 15px rgba(2,195,177,0.5) !important;
         }
         
+        /* Línea separadora del Footer */
         .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #b0c4de, transparent); margin-top: 3rem; }
     </style>
     """, unsafe_allow_html=True)
@@ -155,12 +164,7 @@ if not df.empty:
             
             st.success(f"Bienvenido/a, **{nombre}**")
             
-            # MUESTRA EL MENSAJE DE ÉXITO AQUÍ (Fuera del formulario para que persista tras el vaciado)
-            if st.session_state.pago_enviado:
-                st.success("¡Reporte enviado y registrado exitosamente!")
-                st.info(f"**Referencia:** {st.session_state.ref_seguimiento}")
-                st.caption("Su comprobante ha sido almacenado de forma segura en el sistema administrativo.")
-            
+            # --- FORMULARIO DE REGISTRO ---
             with st.form("registro_pago"):
                 contrato = st.selectbox("Seleccione el contrato a reportar:", lista_contratos)
                 valor = st.number_input("Valor pagado (COP):", min_value=0, step=1000, value=0)
@@ -192,6 +196,14 @@ if not df.empty:
                                 st.error("Fallo al subir la imagen a Cloudinary. Intente de nuevo.")
                     else:
                         st.warning("Debe ingresar un valor mayor a 0 y adjuntar el soporte de pago.")
+            
+            # --- MENSAJE DE ÉXITO REUBICADO ---
+            # Aparecerá debajo del formulario una vez que la página se recargue tras un envío exitoso
+            if st.session_state.pago_enviado:
+                st.success("¡Reporte enviado y registrado exitosamente!")
+                st.info(f"**Referencia:** {st.session_state.ref_seguimiento}")
+                st.caption("Su comprobante ha sido almacenado de forma segura en el sistema administrativo.")
+                
         else:
             st.error("Cédula no encontrada en nuestra base de datos.")
 else:
