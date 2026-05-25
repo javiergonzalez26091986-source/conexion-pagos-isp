@@ -109,13 +109,7 @@ st.subheader("Gestión automatizada de soporte para nuestros clientes")
 
 # --- FUNCIONES DE CONEXIÓN A GOOGLE APPS SCRIPT ---
 @st.cache_data(ttl=60)
-def cargar_clientes():
-    if URL_APP_SCRIPT == "TU_URL_DE_APPS_SCRIPT_AQUI":
-        data = {
-            'CODIGO': ['16892013', '12345678'],
-            'NOMBRE': ['Rodriguez Caicedo Janer Fabricio', 'CLIENTE PRUEBA'],
-            'CONTRATO': ['157', 'CONT-002']
-        }
+
         return pd.DataFrame(data)
     try:
         response = requests.get(URL_APP_SCRIPT)
