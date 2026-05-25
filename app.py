@@ -3,12 +3,20 @@ import pandas as pd
 from datetime import datetime
 from PIL import Image
 import requests
-import time  # <-- Nueva librería para la recarga automática
 
 # --- CONFIGURACIÓN DE APIS ---
 CLOUDINARY_CLOUD_NAME = "dgdtwbmot"
 CLOUDINARY_PRESET = "conexion_pagos_preset1"
+
 URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
+
+# --- INICIALIZACIÓN DE ESTADOS (Para evitar duplicados y limpiar campos) ---
+if "pago_enviado" not in st.session_state:
+    st.session_state.pago_enviado = False
+if "ref_seguimiento" not in st.session_state:
+    st.session_state.ref_seguimiento = ""
+if "cedula_anterior" not in st.session_state:
+    st.session_state.cedula_anterior = ""
 
 # --- CARGAR IMÁGENES ---
 try:
@@ -20,28 +28,34 @@ except Exception:
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
-# --- ESTILOS PERSONALIZADOS ---
+# --- ESTILOS PERSONALIZADOS UNIFICADOS Y DEPURADOS ---
 st.markdown("""
     <style>
+        /* Ocultar elementos por defecto de Streamlit */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
         .stAppDeployButton {display:none;}
         div[data-testid="stToolbar"] { visibility: hidden !important; }
 
+        /* Colores y fondos principales */
         .main { background-color: #00233c; }
         .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
         
+        /* Tipografías y Textos */
         h1, h3 { text-align: center !important; }
         h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
         h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
         .stMarkdown p { color: #ffffff; text-align: center; }
         
+        /* Caja de entrada de la Cédula */
         .stTextInput > div > div > input { background-color: #ffffff; color: #00233c; border-radius: 8px; border: 2px solid #00a896; }
         
+        /* Formulario Blanco */
         .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
         
+        /* Diseño del Botón de Enviar (Siempre Visible Verde/Aqua) */
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important;
             color: #ffffff !important;
@@ -67,6 +81,7 @@ st.markdown("""
             box-shadow: 0 6px 15px rgba(2,195,177,0.5) !important;
         }
         
+        /* Línea separadora del Footer */
         .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #b0c4de, transparent); margin-top: 3rem; }
     </style>
     """, unsafe_allow_html=True)
@@ -80,9 +95,16 @@ if logo_completo is not None:
 st.title("Portal de Pagos")
 st.subheader("Gestión automatizada de soporte para nuestros clientes")
 
-# --- FUNCIONES DE CONEXIÓN ---
+# --- FUNCIONES DE CONEXIÓN A GOOGLE APPS SCRIPT ---
 @st.cache_data(ttl=60)
 def cargar_clientes():
+    if URL_APP_SCRIPT == "TU_URL_DE_APPS_SCRIPT_AQUI":
+        data = {
+            'CODIGO': ['16892013', '12345678'],
+            'NOMBRE': ['Rodriguez Caicedo Janer Fabricio', 'CLIENTE PRUEBA'],
+            'CONTRATO': ['157', 'CONT-002']
+        }
+        return pd.DataFrame(data)
     try:
         response = requests.get(URL_APP_SCRIPT)
         if response.status_code == 200:
@@ -109,6 +131,7 @@ def guardar_registro_pago(cedula, nombre, contrato, valor, fecha, mes, url_compr
     except Exception:
         return False
 
+# --- FUNCIÓN PARA CLOUDINARY ---
 def subir_a_cloudinary(archivo_subido):
     url_api = f"https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/image/upload"
     payload = {"upload_preset": CLOUDINARY_PRESET}
@@ -127,6 +150,11 @@ df = cargar_clientes()
 if not df.empty:
     cedula_input = st.text_input("Ingrese su número de cédula para continuar:", placeholder="Ej: 16892013")
 
+    # Si el usuario cambia la cédula o la borra, limpiamos cualquier mensaje de éxito anterior
+    if cedula_input != st.session_state.cedula_anterior:
+        st.session_state.pago_enviado = False
+        st.session_state.cedula_anterior = cedula_input
+
     if cedula_input:
         cliente = df[df['CODIGO'].astype(str) == str(cedula_input)]
         
@@ -136,8 +164,8 @@ if not df.empty:
             
             st.success(f"Bienvenido/a, **{nombre}**")
             
-            # --- FORMULARIO (Agregamos clear_on_submit=True) ---
-            with st.form("registro_pago", clear_on_submit=True):
+            # --- FORMULARIO DE REGISTRO ---
+            with st.form("registro_pago"):
                 contrato = st.selectbox("Seleccione el contrato a reportar:", lista_contratos)
                 valor = st.number_input("Valor pagado (COP):", min_value=0, step=1000, value=0)
                 fecha = st.date_input("Fecha de realización del pago")
@@ -145,33 +173,37 @@ if not df.empty:
                 archivo = st.file_uploader("Adjuntar comprobante (JPG, PNG, PDF):", type=['jpg', 'png', 'pdf'])
                 
                 submit = st.form_submit_button("Enviar Reporte de Pago")
-            
-            # --- PROCESAMIENTO FUERA DEL FORMULARIO (Se renderiza abajo) ---
-            if submit:
-                if archivo is not None and valor > 0:
-                    with st.spinner("Procesando información y guardando comprobante..."):
-                        url_comprobante = subir_a_cloudinary(archivo)
-                        
-                        if url_comprobante:
-                            guardado_exitoso = guardar_registro_pago(
-                                cedula_input, nombre, contrato, valor, fecha, mes, url_comprobante
-                            )
+                
+                if submit:
+                    if archivo is not None and valor > 0:
+                        with st.spinner("Procesando información..."):
+                            url_comprobante = subir_a_cloudinary(archivo)
                             
-                            if guardado_exitoso:
-                                st.success("¡Reporte enviado y registrado exitosamente!")
-                                st.info(f"**Referencia:** {datetime.now().strftime('%Y%m%d%H%M%S')}")
-                                st.caption("Su comprobante ha sido almacenado de forma segura.")
+                            if url_comprobante:
+                                guardado_exitoso = guardar_registro_pago(
+                                    cedula_input, nombre, contrato, valor, fecha, mes, url_comprobante
+                                )
                                 
-                                # Anuncio y pausa antes de la recarga
-                                st.warning("🔄 Actualizando el portal por seguridad en 4 segundos...")
-                                time.sleep(4)
-                                st.rerun()
+                                if guardado_exitoso:
+                                    # Guardamos los datos de éxito en el estado de la sesión antes de reiniciar
+                                    st.session_state.pago_enviado = True
+                                    st.session_state.ref_seguimiento = datetime.now().strftime('%Y%m%d%H%M%S')
+                                    # Forzamos la limpieza del formulario recreando la interfaz en blanco
+                                    st.rerun()
+                                else:
+                                    st.error("Error al registrar en la base de datos de Google Sheets.")
                             else:
-                                st.error("Error al registrar en la base de datos de Google Sheets.")
-                        else:
-                            st.error("Fallo al subir la imagen a Cloudinary. Intente de nuevo.")
-                else:
-                    st.warning("Debe ingresar un valor mayor a 0 y adjuntar el soporte de pago.")
+                                st.error("Fallo al subir la imagen a Cloudinary. Intente de nuevo.")
+                    else:
+                        st.warning("Debe ingresar un valor mayor a 0 y adjuntar el soporte de pago.")
+            
+            # --- MENSAJE DE ÉXITO REUBICADO ---
+            # Aparecerá debajo del formulario una vez que la página se recargue tras un envío exitoso
+            if st.session_state.pago_enviado:
+                st.success("¡Reporte enviado y registrado exitosamente!")
+                st.info(f"**Referencia:** {st.session_state.ref_seguimiento}")
+                st.caption("Su comprobante ha sido almacenado de forma segura en el sistema administrativo.")
+                
         else:
             st.error("Cédula no encontrada en nuestra base de datos.")
 else:
