@@ -5,8 +5,8 @@ from PIL import Image
 import requests
 
 # --- CONFIGURACIÓN DE APIS ---
-CLOUDINARY_CLOUD_NAME = "ddouzzs1i"
-CLOUDINARY_PRESET = "conexion_pagos_preset"
+CLOUDINARY_CLOUD_NAME = "dgdtwbmot"
+CLOUDINARY_PRESET = "conexion_pagos_preset1"
 
 st.markdown("""
     <style>
