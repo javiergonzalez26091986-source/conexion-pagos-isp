@@ -8,6 +8,27 @@ import requests
 CLOUDINARY_CLOUD_NAME = "ddouzzs1i"
 CLOUDINARY_PRESET = "conexion_pagos_preset"
 
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stAppDeployButton {display:none;}
+    div[data-testid="stToolbar"] { visibility: hidden !important; }
+    
+    div.stButton > button:first-child[kind="primary"] {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+    .stColumn div.stButton > button[kind="primary"] {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Coloca aquí tu URL real de Google Apps Script (la que termina en /exec)
 URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 
