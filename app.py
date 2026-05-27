@@ -58,7 +58,7 @@ st.title("Portal de Pagos")
 st.subheader("Gestión automatizada de soporte para nuestros clientes")
 
 # --- FUNCIONES DE CONEXIÓN ---
-@st.cache_data(ttl=30) # Reducido a 30s para validar referencias en tiempo real
+@st.cache_data(ttl=30)
 def cargar_datos_y_referencias():
     try:
         response = requests.get(URL_APP_SCRIPT)
@@ -112,14 +112,27 @@ def ejecutar_lector_optico(archivo):
         except Exception: pass
             
     valor_detectado = 0; ref_detectada = ""
+    
     if texto_completo:
-        texto_clean = texto_completo.lower()
+        # Limpieza inicial para leer de corrido
+        texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
+        
+        # 1. Extracción de Valor Monetario (Omitiendo los céntimos de Nequi/Bancolombia)
         valores = re.findall(r'\$\s*([\d\.,]+)', texto_clean)
         if valores:
-            num_clean = valores[0].replace(".", "").replace(",", "")
+            raw_val = valores[0]
+            raw_val = re.sub(r'[,.]\d{2}$', '', raw_val) # Elimina los ,00 o .00 finales
+            num_clean = raw_val.replace(".", "").replace(",", "")
             if num_clean.isdigit(): valor_detectado = int(num_clean)
-        referencias = re.findall(r'\b\d{6,14}\b', texto_clean)
-        if referencias: ref_detectada = referencias[0]
+            
+        # 2. Extracción de Referencia
+        match_ref = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n|comprobante).{0,15}?([a-z0-9]{5,20})', texto_clean)
+        if match_ref: 
+            ref_detectada = match_ref.group(1).upper()
+        else:
+            # Respaldo para códigos Nequi solitarios (Ej: M1540171)
+            match_nequi = re.search(r'\b(m\d{5,10})\b', texto_clean)
+            if match_nequi: ref_detectada = match_nequi.group(1).upper()
             
     return valor_detectado, ref_detectada
 
@@ -154,8 +167,11 @@ if not df.empty:
             
             with st.form("registro_pago"):
                 contrato = st.selectbox("Seleccione el contrato a reportar:", lista_contratos)
-                valor = st.number_input("Valor pagado (COP):", min_value=0, step=1000, value=st.session_state.ocr_valor)
+                
+                # Etiqueta actualizada con el símbolo $
+                valor = st.number_input("Valor pagado ($ COP):", min_value=0, step=1000, value=st.session_state.ocr_valor)
                 referencia_pago = st.text_input("Referencia o N° de operación del pago:", value=st.session_state.ocr_ref, placeholder="Ej: 1948204812")
+                
                 fecha = st.date_input("Fecha de realización del pago")
                 mes = st.selectbox("Mes correspondiente:", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=datetime.now().month-1)
                 
@@ -164,7 +180,6 @@ if not df.empty:
                 if submit:
                     ref_limpia = referencia_pago.strip()
                     
-                    # VALIDACIÓN DE DUPLICADOS
                     if ref_limpia != "" and str(ref_limpia) in [str(r) for r in referencias_existentes]:
                         st.error(f"⚠️ Atención: El comprobante con referencia '{ref_limpia}' ya se encuentra registrado en el sistema. Por favor, verifique para evitar un doble reporte.")
                     
