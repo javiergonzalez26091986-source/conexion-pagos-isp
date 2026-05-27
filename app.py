@@ -125,17 +125,24 @@ def ejecutar_lector_optico(archivo):
             num_clean = raw_val.replace(".", "").replace(",", "")
             if num_clean.isdigit(): valor_detectado = int(num_clean)
             
-        # 2. Extracción de Referencia
-        match_ref = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n|comprobante).{0,15}?([a-z0-9]{5,20})', texto_clean)
-        if match_ref: 
+        # 2. Extracción de Referencia (Ajustado para Nequi/Bancolombia)
+        # Prioridad 1: Buscar "número de referencia" seguido de una secuencia alfanumérica
+        match_ref = re.search(r'n[uú]mero de referencia\s*([a-z0-9]{5,20})', texto_clean)
+        
+        if match_ref:
             ref_detectada = match_ref.group(1).upper()
         else:
-            # Respaldo para códigos Nequi solitarios (Ej: M1540171)
-            match_nequi = re.search(r'\b(m\d{5,10})\b', texto_clean)
-            if match_nequi: ref_detectada = match_nequi.group(1).upper()
+            # Prioridad 2: Buscar otras palabras clave (ref, aprobacion) y capturar letras+números
+            match_otras = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n).{0,15}?([a-z0-9]{5,20})', texto_clean)
+            if match_otras and match_otras.group(1) != "movimiento": # Evitamos falsos positivos
+                 ref_detectada = match_otras.group(1).upper()
+            else:
+                 # Prioridad 3: Buscar un patrón clásico de Nequi (M seguido de números) suelto en el texto
+                 match_nequi = re.search(r'\b(m\d{5,10})\b', texto_clean)
+                 if match_nequi:
+                     ref_detectada = match_nequi.group(1).upper()
             
     return valor_detectado, ref_detectada
-
 # --- FLUJO PRINCIPAL ---
 df, referencias_existentes = cargar_datos_y_referencias()
 
