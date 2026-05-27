@@ -9,7 +9,7 @@ import re
 # --- CONFIGURACIÓN DE APIS ---
 CLOUDINARY_CLOUD_NAME = "dgdtwbmot"
 CLOUDINARY_PRESET = "conexion_pagos_preset1"
-URL_APP_SCRIPT = "https://conexion-pagos-isp-aujjnccwxzvi4xqpmefrj2.streamlit.app/"
+URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzcAnlhqTu-gAxteS-14UpE8UIMUxVDLztnO6a8Vx9Xaqg_uso__qJqQBgzBB0ePIUnNA/exec"
 OCR_SPACE_API_KEY = "helloworld" 
 
 # --- INICIALIZACIÓN DE ESTADOS ---
