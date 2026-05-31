@@ -126,7 +126,7 @@ def ejecutar_lector_optico(archivo):
             if num_clean.isdigit(): valor_detectado = int(num_clean)
             
         # 2. Extracción de Referencia (Ajustado para Nequi/Bancolombia)
-        # Prioridad 1: Buscar "número de referencia" seguido de una secuencia alfanumérica
+        # Prioridad 1: Buscar "número de referencia" seguido de una secuencia alfanumérica.
         match_ref = re.search(r'n[uú]mero de referencia\s*([a-z0-9]{5,20})', texto_clean)
         
         if match_ref:
