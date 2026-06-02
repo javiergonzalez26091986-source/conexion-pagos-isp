@@ -2,9 +2,9 @@ name: Despertador Automático Señal Más
 
 on:
   schedule:
-    # Se ejecuta todos los días a las 10:45 UTC (05:45 AM hora local)
-    - cron: '45 10 * * *'
-  workflow_dispatch:
+    # Se ejecuta en el minuto 0 de cada 6 horas (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Este comando te permite ejecutarlo también manualmente mediante un botón en GitHub
 
 jobs:
   despertar:
