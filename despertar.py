@@ -6,7 +6,9 @@ def despertar_portal():
     with sync_playwright() as p:
         # Lanzamos un navegador Chromium invisible (headless)
         browser = p.chromium.launch(headless=True)
-        page = browser.new_workbook() if hasattr(browser, 'new_workbook') else browser.new_page()
+        
+        # Creamos una nueva pestaña en el navegador
+        page = browser.new_page()
         
         # URL de tu Portal de Pagos de Señal Más
         url = "https://conexion-pagos-isp-aujjnccwxzvi4xqpmefrj2.streamlit.app/" 
@@ -20,6 +22,8 @@ def despertar_portal():
         
         # Tomamos el título de la página para confirmar que cargó con éxito
         print(f"Portal despierto. Título de la app: '{page.title()}'")
+        
+        # Cerramos el navegador para liberar recursos
         browser.close()
 
 if __name__ == "__main__":
