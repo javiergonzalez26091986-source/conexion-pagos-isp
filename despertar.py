@@ -10,7 +10,7 @@ def despertar_portal():
         # Creamos una nueva pestaña en el navegador
         page = browser.new_page()
         
-        # URL de tu Portal de Pagos de Señal Más
+        # URL
         url = "https://conexion-pagos-isp-aujjnccwxzvi4xqpmefrj2.streamlit.app/" 
         
         print(f"Visitando el portal: {url}")
