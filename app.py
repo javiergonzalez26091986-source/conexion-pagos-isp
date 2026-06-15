@@ -165,26 +165,29 @@ def ejecutar_lector_optico(archivo):
         # Limpieza inicial para leer de corrido
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
-        # 1. Extracción de Valor Monetario (Optimizada para espacios indeseados del OCR)
-        valores = re.findall(r'\$\s*([\d\.,\s]+)', texto_clean)
+        # 1. Extracción de Valor Monetario (Optimizada para espacios y signos raros del OCR)
+        # Se agregaron punto y coma, dos puntos, guiones y comillas que los OCR suelen confundir con puntos.
+        valores = re.findall(r'\$\s*([\d\.,;:\'\-\s]+)', texto_clean)
+        
         if valores:
-            raw_val = valores[0].strip().replace(" ", "") # Quitamos espacios en blanco
-            raw_val = re.sub(r'[,.]\d{2}$', '', raw_val) # Elimina los ,00 o .00 finales
-            num_clean = re.sub(r'[^\d]', '', raw_val) # Deja solo los dígitos (ignora puntos de miles)
-            if num_clean.isdigit(): valor_detectado = int(num_clean)
+            raw_val = re.sub(r'\s+', '', valores[0]) # 1. Eliminar cualquier espacio en blanco en medio
+            raw_val = re.sub(r'[^\d]+$', '', raw_val) # 2. Limpiar símbolos sobrantes al final que no sean números
+            raw_val = re.sub(r'[,.]\d{1,2}$', '', raw_val) # 3. Eliminar los centavos/decimales finales (ej. ,00 o .00)
+            num_clean = re.sub(r'[^\d]', '', raw_val) # 4. Dejar solo números puros (quita puntos y comas de miles)
             
-        # 2. Extracción de Referencia (Añadido "Comprobante No." para Bancolombia)
+            if num_clean.isdigit(): 
+                valor_detectado = int(num_clean)
+            
+        # 2. Extracción de Referencia
         match_ref = re.search(r'n[uú]mero de referencia\s*([a-z0-9]{5,20})', texto_clean)
         
         if match_ref:
             ref_detectada = match_ref.group(1).upper()
         else:
-            # Añadido: comprobante no. | comprobante numero
             match_otras = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n|comprobante\s*(?:no\.?|n[uú]mero)?)\s*[:.-]?\s*([a-z0-9]{5,25})', texto_clean)
             if match_otras and match_otras.group(1) not in ["movimiento", "exitoso", "exitosa"]:
                  ref_detectada = match_otras.group(1).upper()
             else:
-                 # Patrón clásico de Nequi
                  match_nequi = re.search(r'\b(m\d{5,15})\b', texto_clean)
                  if match_nequi:
                      ref_detectada = match_nequi.group(1).upper()
