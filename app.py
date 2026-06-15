@@ -36,15 +36,31 @@ st.markdown("""
         /* 1. Fondo negro puro para toda la app */
         .stApp, .main { background-color: #000000 !important; } 
         
-        /* 2. Forzar que todos los textos y etiquetas sean blancos para que resalten */
-        label, p, span, div[data-testid="stMarkdownContainer"] { color: #ffffff !important; }
-        
         .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
-        h1, h3 { text-align: center !important; }
-        h1 { color: #ffffff !important; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
-        h3 { color: #b0c4de !important; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
         
-        /* 3. Entradas de texto: fondo blanco y letra negra para contraste */
+        /* 2. Forzar Títulos y Subtítulos apuntando a las capas internas de Streamlit */
+        h1, h1 *, div[data-testid="stMarkdownContainer"] h1 { 
+            color: #ffffff !important; 
+            text-align: center !important;
+            font-size: 2.2rem !important; 
+            margin-top: 0 !important; 
+            font-weight: 700 !important; 
+        }
+        
+        h3, h3 *, div[data-testid="stMarkdownContainer"] h3 { 
+            color: #b0c4de !important; 
+            text-align: center !important;
+            font-size: 1.1rem !important; 
+            font-weight: 400 !important; 
+            margin-bottom: 2.5rem !important; 
+        }
+        
+        /* 3. Forzar el texto de las etiquetas (como "Ingrese su número de cédula...") */
+        label, label p, div[data-testid="stWidgetLabel"] p, div[data-testid="stMarkdownContainer"] p { 
+            color: #ffffff !important; 
+        }
+
+        /* 4. Entradas de texto: fondo blanco y letra negra para que el usuario vea lo que escribe */
         .stTextInput > div > div > input, 
         .stNumberInput > div > div > input { 
             background-color: #ffffff !important; 
@@ -53,15 +69,15 @@ st.markdown("""
             border: 2px solid #00a896; 
         }
         
-        /* Desplegables (Selectboxes) con estilo adaptado */
+        /* Desplegables (Selectboxes) */
         div[data-baseweb="select"] > div { 
             background-color: #ffffff !important; 
             border-radius: 8px; 
             border: 2px solid #00a896;
         }
-        div[data-baseweb="select"] span { color: #000000 !important; } /* Letra negra dentro del selectbox */
+        div[data-baseweb="select"] span { color: #000000 !important; }
         
-        /* 4. Estilos del Formulario principal (un gris muy oscuro para separar del fondo negro) */
+        /* 5. Estilos del Formulario principal */
         .stForm { 
             border: 1px solid #333333; 
             border-radius: 12px; 
@@ -69,9 +85,8 @@ st.markdown("""
             padding: 2rem; 
             box-shadow: 0 4px 15px rgba(255,255,255,0.05); 
         }
-        .stForm label, .stForm p { color: #ffffff !important; font-weight: 600; text-align: left; }
         
-        /* 5. Botón de enviar */
+        /* 6. Botón de enviar */
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important; color: #ffffff !important; border-radius: 8px !important;
             font-weight: 700 !important; font-size: 1.1rem !important; border: none !important;
