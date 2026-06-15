@@ -91,7 +91,6 @@ st.markdown("""
             border-radius: 8px !important; 
             border: 2px solid #00a896 !important;
         }
-        /* Evita que el texto de las opciones (ej. "Junio") se vuelva blanco */
         div[data-baseweb="select"] * { 
             color: #000000 !important; 
         }
@@ -107,7 +106,6 @@ st.markdown("""
         [data-testid="stFileUploaderDropzone"] small {
             color: #00233c !important;
         }
-        /* Botón interno de 'Upload' o 'Browse files' */
         [data-testid="stFileUploader"] button {
             background-color: #ffffff !important;
             color: #00233c !important;
@@ -117,14 +115,19 @@ st.markdown("""
             fill: #00233c !important;
         }
         
-        /* 6.1 Tarjeta del archivo subido (el recuadrito negro que quedaba) */
+        /* 6.1 Tarjeta del archivo subido: ¡Guerra al recuadro negro! */
         [data-testid="stUploadedFile"] {
             background-color: #f4f6f9 !important;
             border: 1px solid #00a896 !important;
             border-radius: 8px !important;
         }
+        /* Esto hace transparentes las capas internas para borrar lo negro */
+        [data-testid="stUploadedFile"] div {
+            background-color: transparent !important; 
+        }
         [data-testid="stUploadedFile"] * {
             color: #00233c !important;
+            -webkit-text-fill-color: #00233c !important; /* Evita que Safari/Chrome blanqueen el texto */
         }
         [data-testid="stUploadedFile"] button {
             background-color: transparent !important;
@@ -222,7 +225,7 @@ def ejecutar_lector_optico(archivo):
         # Limpieza inicial para leer de corrido
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
-        # 1. Extracción de Valor Monetario (Optimizada para confusión de '0' con 'O' en el OCR)
+        # 1. Extracción de Valor Monetario 
         match_valor = re.search(r'(?:\$|valor enviado|valor)\s*[:.-]?\s*([\doO]+(?:[\s\.,]*[\doO]+)*)', texto_clean)
         
         if match_valor:
