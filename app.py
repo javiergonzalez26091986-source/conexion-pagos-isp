@@ -32,68 +32,20 @@ st.markdown("""
     <style>
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         .stAppDeployButton {display:none;} div[data-testid="stToolbar"] { visibility: hidden !important; }
-        
-        /* 1. Fondo negro puro para toda la app */
-        .stApp, .main { background-color: #000000 !important; } 
-        
-        .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
-        
-        /* 2. Forzar Títulos y Subtítulos apuntando a las capas internas de Streamlit */
-        h1, h1 *, div[data-testid="stMarkdownContainer"] h1 { 
-            color: #ffffff !important; 
-            text-align: center !important;
-            font-size: 2.2rem !important; 
-            margin-top: 0 !important; 
-            font-weight: 700 !important; 
-        }
-        
-        h3, h3 *, div[data-testid="stMarkdownContainer"] h3 { 
-            color: #b0c4de !important; 
-            text-align: center !important;
-            font-size: 1.1rem !important; 
-            font-weight: 400 !important; 
-            margin-bottom: 2.5rem !important; 
-        }
-        
-        /* 3. Forzar el texto de las etiquetas (como "Ingrese su número de cédula...") */
-        label, label p, div[data-testid="stWidgetLabel"] p, div[data-testid="stMarkdownContainer"] p { 
-            color: #ffffff !important; 
-        }
-
-        /* 4. Entradas de texto: fondo blanco y letra negra para que el usuario vea lo que escribe */
-        .stTextInput > div > div > input, 
-        .stNumberInput > div > div > input { 
-            background-color: #ffffff !important; 
-            color: #000000 !important; 
-            border-radius: 8px; 
-            border: 2px solid #00a896; 
-        }
-        
-        /* Desplegables (Selectboxes) */
-        div[data-baseweb="select"] > div { 
-            background-color: #ffffff !important; 
-            border-radius: 8px; 
-            border: 2px solid #00a896;
-        }
-        div[data-baseweb="select"] span { color: #000000 !important; }
-        
-        /* 5. Estilos del Formulario principal */
-        .stForm { 
-            border: 1px solid #333333; 
-            border-radius: 12px; 
-            background-color: #111111 !important; 
-            padding: 2rem; 
-            box-shadow: 0 4px 15px rgba(255,255,255,0.05); 
-        }
-        
-        /* 6. Botón de enviar */
+        .main { background-color: #00233c; } .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+        h1, h3 { text-align: center !important; }
+        h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
+        h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
+        .stMarkdown p { color: #ffffff; text-align: center; }
+        .stTextInput > div > div > input { background-color: #ffffff; color: #00233c; border-radius: 8px; border: 2px solid #00a896; }
+        .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important; color: #ffffff !important; border-radius: 8px !important;
             font-weight: 700 !important; font-size: 1.1rem !important; border: none !important;
             padding: 0.7rem 2rem !important; width: 100% !important; box-shadow: 0 4px 10px rgba(0,168,150,0.3) !important;
         }
         div[data-testid="stFormSubmitButton"] button:hover { background-color: #02c3b1 !important; box-shadow: 0 6px 15px rgba(2,195,177,0.5) !important; }
-        
         .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #b0c4de, transparent); margin-top: 3rem; }
     </style>
     """, unsafe_allow_html=True)
@@ -191,7 +143,6 @@ def ejecutar_lector_optico(archivo):
                      ref_detectada = match_nequi.group(1).upper()
             
     return valor_detectado, ref_detectada
-
 # --- FLUJO PRINCIPAL ---
 df, referencias_existentes = cargar_datos_y_referencias()
 
