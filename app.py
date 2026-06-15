@@ -95,7 +95,7 @@ st.markdown("""
             color: #000000 !important; 
         }
         
-        /* 6. Subidor de archivos (File Uploader) blindado */
+        /* 6. Subidor de archivos (área donde se arrastra) */
         [data-testid="stFileUploaderDropzone"] {
             background-color: #f4f6f9 !important;
             border: 2px dashed #00a896 !important;
@@ -115,26 +115,32 @@ st.markdown("""
             fill: #00233c !important;
         }
         
-        /* 6.1 Tarjeta del archivo subido: ¡Guerra al recuadro negro! */
+        /* 6.1 Tarjeta del archivo subido: ¡Fondo de color marca y LETRAS BLANCAS! */
         [data-testid="stUploadedFile"] {
-            background-color: #f4f6f9 !important;
+            background-color: #00233c !important; /* Azul oscuro corporativo */
             border: 1px solid #00a896 !important;
             border-radius: 8px !important;
         }
-        /* Esto hace transparentes las capas internas para borrar lo negro */
-        [data-testid="stUploadedFile"] div {
-            background-color: transparent !important; 
-        }
         [data-testid="stUploadedFile"] * {
-            color: #00233c !important;
-            -webkit-text-fill-color: #00233c !important; /* Evita que Safari/Chrome blanqueen el texto */
+            color: #ffffff !important; /* Letra blanca */
+            -webkit-text-fill-color: #ffffff !important;
         }
         [data-testid="stUploadedFile"] button {
             background-color: transparent !important;
             border: none !important;
         }
         [data-testid="stUploadedFile"] svg {
-            fill: #00233c !important;
+            fill: #ffffff !important; /* Íconos blancos */
+        }
+        
+        /* 6.2 Notificaciones Toast (Para que no se vea negro con letra negra) */
+        [data-testid="stToast"] {
+            background-color: #00233c !important; /* Fondo azul oscuro corporativo */
+            border-left: 5px solid #00a896 !important;
+        }
+        [data-testid="stToast"] * {
+            color: #ffffff !important; /* Letra blanca */
+            -webkit-text-fill-color: #ffffff !important;
         }
         
         /* 7. Estilos del Formulario principal */
@@ -225,7 +231,7 @@ def ejecutar_lector_optico(archivo):
         # Limpieza inicial para leer de corrido
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
-        # 1. Extracción de Valor Monetario 
+        # 1. Extracción de Valor Monetario
         match_valor = re.search(r'(?:\$|valor enviado|valor)\s*[:.-]?\s*([\doO]+(?:[\s\.,]*[\doO]+)*)', texto_clean)
         
         if match_valor:
