@@ -165,17 +165,22 @@ def ejecutar_lector_optico(archivo):
         # Limpieza inicial para leer de corrido
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
-        # 1. Extracción de Valor Monetario (Optimizada para espacios y signos raros del OCR)
-        # Se agregaron punto y coma, dos puntos, guiones y comillas que los OCR suelen confundir con puntos.
-        valores = re.findall(r'\$\s*([\d\.,;:\'\-\s]+)', texto_clean)
+        # 1. Extracción de Valor Monetario (Optimizada para confusión de '0' con 'O' en el OCR)
+        # Buscará el signo $, la palabra "valor" o "enviado" seguido de dígitos (y letras 'o' que corregiremos)
+        match_valor = re.search(r'(?:\$|valor enviado|valor)\s*[:.-]?\s*([\doO]+(?:[\s\.,]*[\doO]+)*)', texto_clean)
         
-        if valores:
-            raw_val = re.sub(r'\s+', '', valores[0]) # 1. Eliminar cualquier espacio en blanco en medio
-            raw_val = re.sub(r'[^\d]+$', '', raw_val) # 2. Limpiar símbolos sobrantes al final que no sean números
-            raw_val = re.sub(r'[,.]\d{1,2}$', '', raw_val) # 3. Eliminar los centavos/decimales finales (ej. ,00 o .00)
-            num_clean = re.sub(r'[^\d]', '', raw_val) # 4. Dejar solo números puros (quita puntos y comas de miles)
+        if match_valor:
+            raw_val = match_valor.group(1)
+            # El OCR suele ver los ceros como la letra 'o'. La convertimos a cero real.
+            raw_val = raw_val.replace("o", "0").replace("O", "0") 
+            raw_val = raw_val.replace(" ", "") # Quitamos espacios
             
-            if num_clean.isdigit(): 
+            # Cortar los céntimos si la cifra termina exactamente en coma o punto y dos ceros (ej. ,00)
+            if re.search(r'[,.]\d{2}$', raw_val):
+                raw_val = raw_val[:-3]
+                
+            num_clean = re.sub(r'\D', '', raw_val) # Eliminar los puntos y comas de miles que queden
+            if num_clean.isdigit():
                 valor_detectado = int(num_clean)
             
         # 2. Extracción de Referencia
