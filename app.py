@@ -60,33 +60,49 @@ st.markdown("""
             font-weight: 600 !important;
         }
 
-        /* 4. Entradas de texto: fondo gris muy claro para destacar del fondo blanco */
-        .stTextInput > div > div > input, 
-        .stNumberInput > div > div > input { 
+        /* 4. Forzar diseño claro en TODOS los inputs (Texto, Números, Fechas) blindando contra Modo Oscuro */
+        div[data-baseweb="input"] > div, 
+        div[data-baseweb="base-input"], 
+        div[data-baseweb="base-input"] > input {
             background-color: #f4f6f9 !important; 
             color: #000000 !important; 
-            border-radius: 8px; 
-            border: 2px solid #00a896; 
+            -webkit-text-fill-color: #000000 !important; 
+        }
+        div[data-baseweb="input"] > div {
+            border-radius: 8px !important; 
+            border: 2px solid #00a896 !important;
         }
         
-        /* Desplegables (Selectboxes) */
+        /* 5. Desplegables (Selectboxes) blindados */
         div[data-baseweb="select"] > div { 
             background-color: #f4f6f9 !important; 
-            border-radius: 8px; 
-            border: 2px solid #00a896;
+            border-radius: 8px !important; 
+            border: 2px solid #00a896 !important;
         }
         div[data-baseweb="select"] span { color: #000000 !important; }
         
-        /* 5. Estilos del Formulario principal */
+        /* 6. Subidor de archivos (File Uploader) blindado */
+        [data-testid="stFileUploaderDropzone"] {
+            background-color: #f4f6f9 !important;
+            border: 2px dashed #00a896 !important;
+            border-radius: 8px !important;
+        }
+        [data-testid="stFileUploaderDropzone"] div, 
+        [data-testid="stFileUploaderDropzone"] span,
+        [data-testid="stFileUploaderDropzone"] small {
+            color: #00233c !important;
+        }
+        
+        /* 7. Estilos del Formulario principal */
         .stForm { 
             border: none !important; 
             border-radius: 12px; 
             background-color: #ffffff !important; 
             padding: 2rem; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; /* Sombra sutil para darle relieve */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; 
         }
         
-        /* 6. Botón de enviar */
+        /* 8. Botón de enviar */
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important; color: #ffffff !important; border-radius: 8px !important;
             font-weight: 700 !important; font-size: 1.1rem !important; border: none !important;
@@ -166,20 +182,17 @@ def ejecutar_lector_optico(archivo):
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
         # 1. Extracción de Valor Monetario (Optimizada para confusión de '0' con 'O' en el OCR)
-        # Buscará el signo $, la palabra "valor" o "enviado" seguido de dígitos (y letras 'o' que corregiremos)
         match_valor = re.search(r'(?:\$|valor enviado|valor)\s*[:.-]?\s*([\doO]+(?:[\s\.,]*[\doO]+)*)', texto_clean)
         
         if match_valor:
             raw_val = match_valor.group(1)
-            # El OCR suele ver los ceros como la letra 'o'. La convertimos a cero real.
             raw_val = raw_val.replace("o", "0").replace("O", "0") 
-            raw_val = raw_val.replace(" ", "") # Quitamos espacios
+            raw_val = raw_val.replace(" ", "")
             
-            # Cortar los céntimos si la cifra termina exactamente en coma o punto y dos ceros (ej. ,00)
             if re.search(r'[,.]\d{2}$', raw_val):
                 raw_val = raw_val[:-3]
                 
-            num_clean = re.sub(r'\D', '', raw_val) # Eliminar los puntos y comas de miles que queden
+            num_clean = re.sub(r'\D', '', raw_val)
             if num_clean.isdigit():
                 valor_detectado = int(num_clean)
             
