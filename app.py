@@ -115,32 +115,29 @@ st.markdown("""
             fill: #00233c !important;
         }
         
-        /* 6.1 Tarjeta del archivo subido: ¡Fondo de color marca y LETRAS BLANCAS! */
+        /* 6.1 Tarjeta del archivo subido: Ataque láser para forzar el fondo claro y letras visibles */
         [data-testid="stUploadedFile"] {
-            background-color: #00233c !important; /* Azul oscuro corporativo */
+            background-color: #f4f6f9 !important; 
             border: 1px solid #00a896 !important;
             border-radius: 8px !important;
         }
-        [data-testid="stUploadedFile"] * {
-            color: #ffffff !important; /* Letra blanca */
-            -webkit-text-fill-color: #ffffff !important;
+        /* Esto obliga a los contenedores internos de la tarjeta a no usar el negro de Streamlit */
+        [data-testid="stUploadedFile"] div {
+            background-color: transparent !important;
         }
+        /* Obligamos al nombre del archivo y al peso a ser azul oscuro corporativo */
+        [data-testid="stUploadedFile"] span,
+        [data-testid="stUploadedFile"] small {
+            color: #00233c !important;
+            -webkit-text-fill-color: #00233c !important;
+        }
+        /* Botón de la X y su ícono */
         [data-testid="stUploadedFile"] button {
             background-color: transparent !important;
-            border: none !important;
         }
         [data-testid="stUploadedFile"] svg {
-            fill: #ffffff !important; /* Íconos blancos */
-        }
-        
-        /* 6.2 Notificaciones Toast (Para que no se vea negro con letra negra) */
-        [data-testid="stToast"] {
-            background-color: #00233c !important; /* Fondo azul oscuro corporativo */
-            border-left: 5px solid #00a896 !important;
-        }
-        [data-testid="stToast"] * {
-            color: #ffffff !important; /* Letra blanca */
-            -webkit-text-fill-color: #ffffff !important;
+            fill: #00233c !important;
+            color: #00233c !important;
         }
         
         /* 7. Estilos del Formulario principal */
