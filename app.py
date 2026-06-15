@@ -32,21 +32,69 @@ st.markdown("""
     <style>
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         .stAppDeployButton {display:none;} div[data-testid="stToolbar"] { visibility: hidden !important; }
-        .main { background-color: #00233c; } .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
-        h1, h3 { text-align: center !important; }
-        h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
-        h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
-        .stMarkdown p { color: #ffffff; text-align: center; }
-        .stTextInput > div > div > input { background-color: #ffffff; color: #00233c; border-radius: 8px; border: 2px solid #00a896; }
-        .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
+        
+        /* 1. Forzar fondo completamente blanco para toda la web app */
+        .stApp, .main { background-color: #ffffff !important; } 
+        .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+        
+        /* 2. Textos principales en el azul corporativo original para legibilidad */
+        h1, h1 *, div[data-testid="stMarkdownContainer"] h1 { 
+            color: #00233c !important; 
+            text-align: center !important;
+            font-size: 2.2rem !important; 
+            margin-top: 0 !important; 
+            font-weight: 700 !important; 
+        }
+        
+        h3, h3 *, div[data-testid="stMarkdownContainer"] h3 { 
+            color: #00a896 !important; 
+            text-align: center !important;
+            font-size: 1.1rem !important; 
+            font-weight: 600 !important; 
+            margin-bottom: 2.5rem !important; 
+        }
+        
+        /* 3. Etiquetas y descripciones en gris oscuro/azul marino */
+        label, label p, div[data-testid="stWidgetLabel"] p, div[data-testid="stMarkdownContainer"] p { 
+            color: #00233c !important; 
+            font-weight: 600 !important;
+        }
+
+        /* 4. Entradas de texto: fondo gris muy claro para destacar del fondo blanco */
+        .stTextInput > div > div > input, 
+        .stNumberInput > div > div > input { 
+            background-color: #f4f6f9 !important; 
+            color: #000000 !important; 
+            border-radius: 8px; 
+            border: 2px solid #00a896; 
+        }
+        
+        /* Desplegables (Selectboxes) */
+        div[data-baseweb="select"] > div { 
+            background-color: #f4f6f9 !important; 
+            border-radius: 8px; 
+            border: 2px solid #00a896;
+        }
+        div[data-baseweb="select"] span { color: #000000 !important; }
+        
+        /* 5. Estilos del Formulario principal */
+        .stForm { 
+            border: none !important; 
+            border-radius: 12px; 
+            background-color: #ffffff !important; 
+            padding: 2rem; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; /* Sombra sutil para darle relieve */
+        }
+        
+        /* 6. Botón de enviar */
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important; color: #ffffff !important; border-radius: 8px !important;
             font-weight: 700 !important; font-size: 1.1rem !important; border: none !important;
             padding: 0.7rem 2rem !important; width: 100% !important; box-shadow: 0 4px 10px rgba(0,168,150,0.3) !important;
         }
         div[data-testid="stFormSubmitButton"] button:hover { background-color: #02c3b1 !important; box-shadow: 0 6px 15px rgba(2,195,177,0.5) !important; }
-        .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #b0c4de, transparent); margin-top: 3rem; }
+        
+        .stMarkdown hr { border: 0; height: 1px; background: linear-gradient(to right, transparent, #00a896, transparent); margin-top: 3rem; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -117,32 +165,32 @@ def ejecutar_lector_optico(archivo):
         # Limpieza inicial para leer de corrido
         texto_clean = texto_completo.lower().replace('\n', ' ').replace('\r', ' ')
         
-        # 1. Extracción de Valor Monetario (Omitiendo los céntimos de Nequi/Bancolombia)
-        valores = re.findall(r'\$\s*([\d\.,]+)', texto_clean)
+        # 1. Extracción de Valor Monetario (Optimizada para espacios indeseados del OCR)
+        valores = re.findall(r'\$\s*([\d\.,\s]+)', texto_clean)
         if valores:
-            raw_val = valores[0]
+            raw_val = valores[0].strip().replace(" ", "") # Quitamos espacios en blanco
             raw_val = re.sub(r'[,.]\d{2}$', '', raw_val) # Elimina los ,00 o .00 finales
-            num_clean = raw_val.replace(".", "").replace(",", "")
+            num_clean = re.sub(r'[^\d]', '', raw_val) # Deja solo los dígitos (ignora puntos de miles)
             if num_clean.isdigit(): valor_detectado = int(num_clean)
             
-        # 2. Extracción de Referencia (Ajustado para Nequi/Bancolombia)
-        # Prioridad 1: Buscar "número de referencia" seguido de una secuencia alfanumérica.
+        # 2. Extracción de Referencia (Añadido "Comprobante No." para Bancolombia)
         match_ref = re.search(r'n[uú]mero de referencia\s*([a-z0-9]{5,20})', texto_clean)
         
         if match_ref:
             ref_detectada = match_ref.group(1).upper()
         else:
-            # Prioridad 2: Buscar otras palabras clave (ref, aprobacion) y capturar letras+números
-            match_otras = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n).{0,15}?([a-z0-9]{5,20})', texto_clean)
-            if match_otras and match_otras.group(1) != "movimiento": # Evitamos falsos positivos
+            # Añadido: comprobante no. | comprobante numero
+            match_otras = re.search(r'(?:referencia|ref\.|aprobaci[óo]n|autorizaci[óo]n|comprobante\s*(?:no\.?|n[uú]mero)?)\s*[:.-]?\s*([a-z0-9]{5,25})', texto_clean)
+            if match_otras and match_otras.group(1) not in ["movimiento", "exitoso", "exitosa"]:
                  ref_detectada = match_otras.group(1).upper()
             else:
-                 # Prioridad 3: Buscar un patrón clásico de Nequi (M seguido de números) suelto en el texto
-                 match_nequi = re.search(r'\b(m\d{5,10})\b', texto_clean)
+                 # Patrón clásico de Nequi
+                 match_nequi = re.search(r'\b(m\d{5,15})\b', texto_clean)
                  if match_nequi:
                      ref_detectada = match_nequi.group(1).upper()
             
     return valor_detectado, ref_detectada
+
 # --- FLUJO PRINCIPAL ---
 df, referencias_existentes = cargar_datos_y_referencias()
 
@@ -159,7 +207,7 @@ if not df.empty:
             st.success(f"Bienvenido/a, **{nombre}**")
             st.markdown("---")
             
-            st.markdown("<p style='text-align:left; font-weight:bold; color:#b0c4de;'>1️⃣ Adjunte su soporte de pago para auto-llenar los campos:</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align:left; font-weight:bold; color:#00233c;'>1️⃣ Adjunte su soporte de pago para auto-llenar los campos:</p>", unsafe_allow_html=True)
             archivo = st.file_uploader("", type=['jpg', 'png', 'pdf', 'jpeg'], key=f"file_{st.session_state.run_id}")
             
             if archivo and (st.session_state.ultimo_archivo != archivo.name):
@@ -170,12 +218,11 @@ if not df.empty:
                     st.session_state.ultimo_archivo = archivo.name
                     st.toast("✅ ¡Comprobante leído de forma óptica!", icon="🤖")
 
-            st.markdown("<br><p style='text-align:left; font-weight:bold; color:#b0c4de;'>2️⃣ Verifique o complete la información del reporte:</p>", unsafe_allow_html=True)
+            st.markdown("<br><p style='text-align:left; font-weight:bold; color:#00233c;'>2️⃣ Verifique o complete la información del reporte:</p>", unsafe_allow_html=True)
             
             with st.form("registro_pago"):
                 contrato = st.selectbox("Seleccione el contrato a reportar:", lista_contratos)
                 
-                # Etiqueta actualizada con el símbolo $
                 valor = st.number_input("Valor pagado ($ COP):", min_value=0, step=1000, value=st.session_state.ocr_valor)
                 referencia_pago = st.text_input("Referencia o N° de operación del pago:", value=st.session_state.ocr_ref, placeholder="Ej: 1948204812")
                 
@@ -225,4 +272,4 @@ else:
     st.warning("Conectando con la base de datos o base de datos vacía...")
 
 st.markdown("---")
-st.markdown('<p style="color: #b0c4de; text-align: center; font-size: 0.9rem;">Señal Más | Innovación y Conectividad | senalmas.florida@gmail.com | +57 300 3190253</p>', unsafe_allow_html=True)
+st.markdown('<p style="color: #00233c; text-align: center; font-size: 0.9rem;">Señal Más | Innovación y Conectividad | senalmas.florida@gmail.com | +57 300 3190253</p>', unsafe_allow_html=True)
