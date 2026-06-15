@@ -60,7 +60,7 @@ st.markdown("""
             font-weight: 600 !important;
         }
 
-        /* 4. Forzar diseño claro en TODOS los inputs (Texto, Números, Fechas) blindando contra Modo Oscuro */
+        /* 4. Forzar diseño claro en TODOS los inputs (Texto, Números, Fechas) */
         div[data-baseweb="input"] > div, 
         div[data-baseweb="base-input"], 
         div[data-baseweb="base-input"] > input {
@@ -73,13 +73,28 @@ st.markdown("""
             border: 2px solid #00a896 !important;
         }
         
+        /* 4.1 Blindar botones internos (+, -, calendario) contra el fondo negro */
+        [data-testid="stNumberInput"] button,
+        [data-testid="stDateInput"] button {
+            background-color: #f4f6f9 !important;
+            color: #00233c !important;
+        }
+        [data-testid="stNumberInput"] button svg,
+        [data-testid="stDateInput"] button svg {
+            fill: #00233c !important;
+            color: #00233c !important;
+        }
+        
         /* 5. Desplegables (Selectboxes) blindados */
         div[data-baseweb="select"] > div { 
             background-color: #f4f6f9 !important; 
             border-radius: 8px !important; 
             border: 2px solid #00a896 !important;
         }
-        div[data-baseweb="select"] span { color: #000000 !important; }
+        /* Evita que el texto de las opciones (ej. "Junio") se vuelva blanco */
+        div[data-baseweb="select"] * { 
+            color: #000000 !important; 
+        }
         
         /* 6. Subidor de archivos (File Uploader) blindado */
         [data-testid="stFileUploaderDropzone"] {
@@ -91,6 +106,15 @@ st.markdown("""
         [data-testid="stFileUploaderDropzone"] span,
         [data-testid="stFileUploaderDropzone"] small {
             color: #00233c !important;
+        }
+        /* Botón interno de 'Upload' o 'Browse files' */
+        [data-testid="stFileUploader"] button {
+            background-color: #ffffff !important;
+            color: #00233c !important;
+            border: 1px solid #00a896 !important;
+        }
+        [data-testid="stFileUploader"] button svg {
+            fill: #00233c !important;
         }
         
         /* 7. Estilos del Formulario principal */
