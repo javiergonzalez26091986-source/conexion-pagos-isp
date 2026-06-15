@@ -32,14 +32,18 @@ st.markdown("""
     <style>
         #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
         .stAppDeployButton {display:none;} div[data-testid="stToolbar"] { visibility: hidden !important; }
-        .main { background-color: #00233c; } .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+        
+        /* Forzamos el fondo negro puro en la app completa y contenedor principal */
+        .stApp, .main { background-color: #000000 !important; } 
+        
+        .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
         h1, h3 { text-align: center !important; }
         h1 { color: #ffffff; font-size: 2.2rem; margin-top: 0; font-weight: 700; }
         h3 { color: #b0c4de; font-size: 1.1rem; font-weight: 400; margin-bottom: 2.5rem; }
         .stMarkdown p { color: #ffffff; text-align: center; }
-        .stTextInput > div > div > input { background-color: #ffffff; color: #00233c; border-radius: 8px; border: 2px solid #00a896; }
-        .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .stForm label, .stForm p { color: #00233c !important; font-weight: 600; text-align: left; }
+        .stTextInput > div > div > input { background-color: #ffffff; color: #000000; border-radius: 8px; border: 2px solid #00a896; }
+        .stForm { border: none; border-radius: 12px; background-color: #ffffff; padding: 2rem; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+        .stForm label, .stForm p { color: #000000 !important; font-weight: 600; text-align: left; }
         div[data-testid="stFormSubmitButton"] button {
             background-color: #00a896 !important; color: #ffffff !important; border-radius: 8px !important;
             font-weight: 700 !important; font-size: 1.1rem !important; border: none !important;
@@ -143,6 +147,7 @@ def ejecutar_lector_optico(archivo):
                      ref_detectada = match_nequi.group(1).upper()
             
     return valor_detectado, ref_detectada
+
 # --- FLUJO PRINCIPAL ---
 df, referencias_existentes = cargar_datos_y_referencias()
 
