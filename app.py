@@ -117,6 +117,23 @@ st.markdown("""
             fill: #00233c !important;
         }
         
+        /* 6.1 Tarjeta del archivo subido (el recuadrito negro que quedaba) */
+        [data-testid="stUploadedFile"] {
+            background-color: #f4f6f9 !important;
+            border: 1px solid #00a896 !important;
+            border-radius: 8px !important;
+        }
+        [data-testid="stUploadedFile"] * {
+            color: #00233c !important;
+        }
+        [data-testid="stUploadedFile"] button {
+            background-color: transparent !important;
+            border: none !important;
+        }
+        [data-testid="stUploadedFile"] svg {
+            fill: #00233c !important;
+        }
+        
         /* 7. Estilos del Formulario principal */
         .stForm { 
             border: none !important; 
