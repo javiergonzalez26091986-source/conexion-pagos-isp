@@ -5,6 +5,7 @@ from PIL import Image
 import requests
 import time
 import re
+import os  # Añadimos os para validar la existencia de los archivos
 
 # --- CONFIGURACIÓN DE APIS ---
 CLOUDINARY_CLOUD_NAME = "dgdtwbmot"
@@ -19,11 +20,24 @@ if "ocr_ref" not in st.session_state: st.session_state.ocr_ref = ""
 if "ultimo_archivo" not in st.session_state: st.session_state.ultimo_archivo = None
 
 # --- CARGAR IMÁGENES ---
+ruta_logo = 'logoSenalMas.jpeg'
+ruta_icono = 'logoSenalMas.ico'
+
+# Para el logo en pantalla, pasamos la ruta directa (texto) en vez de usar PIL.
+# Esto evita el TypeError en Streamlit Cloud.
+if os.path.exists(ruta_logo):
+    logo_completo = ruta_logo
+else:
+    logo_completo = None
+
+# Para el ícono de la pestaña, usamos PIL con una validación de seguridad
 try:
-    logo_completo = Image.open('logoSenalMas.jpeg')
-    isotipo = Image.open('logoSenalMas.ico')
+    if os.path.exists(ruta_icono):
+        isotipo = Image.open(ruta_icono)
+    else:
+        isotipo = "💳"
 except Exception:
-    logo_completo = None; isotipo = "💳"
+    isotipo = "💳"
 
 st.set_page_config(page_title="Señal Más | Portal de Pagos", page_icon=isotipo, layout="centered")
 
@@ -163,7 +177,8 @@ st.markdown("""
 
 if logo_completo is not None:
     col1, col2, col3 = st.columns([1, 2, 1])
-    with col2: st.image(logo_completo, use_column_width=True)
+    # Cambiamos use_column_width (depreciado) por use_container_width
+    with col2: st.image(logo_completo, use_container_width=True)
 
 st.title("Portal de Pagos")
 st.subheader("Gestión automatizada de soporte para nuestros clientes")
